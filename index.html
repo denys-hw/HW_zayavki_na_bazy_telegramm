@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа</title>
+    <!-- Подключаем официальный скрипт Telegram WebApp -->
+    <script src="https://telegram.org"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 15px;
+            margin: 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+        }
+        .radio-label input {
+            width: auto;
+        }
+        #submit-btn {
+            width: 100%;
+            background-color: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-group">
+        <label for="car-number">1. Номер машины WR- (3 цифры):</label>
+        <input type="number" id="car-number" placeholder="Например: 123" min="100" max="999" required>
+    </div>
+
+    <div class="form-group">
+        <label for="base-select">2. Выберите базу:</label>
+        <select id="base-select" required>
+            <option value="Брюхсаль">Брюхсаль</option>
+            <option value="Шалон">Шалон</option>
+            <option value="Жарска-вешь">Жарска-вешь</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="arrival-time">3. Ориентировочное время прибытия:</label>
+        <input type="time" id="arrival-time" required>
+    </div>
+
+    <div class="form-group">
+        <label>4. Нужен ремонт прицепа?:</label>
+        <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="trailer" value="Да" checked> Да</label>
+            <label class="radio-label"><input type="radio" name="trailer" value="Нет"> Нет</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>5. Нужен ремонт тягача?:</label>
+        <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="truck" value="Да" checked> Да</label>
+            <label class="radio-label"><input type="radio" name="truck" value="Нет"> Нет</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="comment">6. Что нужно получить?:</label>
+        <textarea id="comment" rows="3" placeholder="Введите ваш текст..." required></textarea>
+    </div>
+
+    <button id="submit-btn" onclick="sendData()">Отправить заказ</button>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Расширяем окно на весь экран
+
+        function sendData() {
+            const carNumber = document.getElementById('car-number').value;
+            const base = document.getElementById('base-select').value;
+            const arrivalTime = document.getElementById('arrival-time').value;
+            const trailer = document.querySelector('input[name="trailer"]:checked').value;
+            const truck = document.querySelector('input[name="truck"]:checked').value;
+            const comment = document.getElementById('comment').value;
+
+            // Проверка валидности номера машины
+            if (carNumber.length !== 3) {
+                alert('Номер машины должен состоять ровно из 3 цифр!');
+                return;
+            }
+
+            if (!comment.trim()) {
+                alert('Заполните поле "Что нужно получить?"');
+                return;
+            }
+
+            // Формируем объект с ответами
+            const resultData = {
+                car: carNumber,
+                base: base,
+                time: arrivalTime,
+                trailer: trailer,
+                truck: truck,
+                comment: comment
+            };
+
+            // Отправляем данные обратно боту
+            tg.sendData(JSON.stringify(resultData));
+            tg.close(); // Закрываем форму
+        }
+    </script>
+</body>
+</html>
