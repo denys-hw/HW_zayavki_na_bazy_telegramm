@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Оформление заказа</title>
-    <!-- Подключаем официальный скрипт Telegram WebApp -->
     <script src="https://telegram.org"></script>
     <style>
         body {
@@ -82,7 +81,7 @@
     </div>
 
     <div class="form-group">
-        <label>4. Нужен ремонт прицепа?:</label>
+        <label>4. Нужно ремонт прицепа?:</label>
         <div class="radio-group">
             <label class="radio-label"><input type="radio" name="trailer" value="Да" checked> Да</label>
             <label class="radio-label"><input type="radio" name="trailer" value="Нет"> Нет</label>
@@ -105,9 +104,8 @@
     <button id="submit-btn" onclick="sendData()">Отправить заказ</button>
 
     <script>
-        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Расширяем окно на весь экран
+        tg.expand();
 
         function sendData() {
             const carNumber = document.getElementById('car-number').value;
@@ -117,30 +115,55 @@
             const truck = document.querySelector('input[name="truck"]:checked').value;
             const comment = document.getElementById('comment').value;
 
-            // Проверка валидности номера машины
             if (carNumber.length !== 3) {
                 alert('Номер машины должен состоять ровно из 3 цифр!');
                 return;
             }
-
             if (!comment.trim()) {
-                alert('Заполните поле "Что нужно получить?"');
+                alert('Заполните последнее поле!');
                 return;
             }
 
-            // Формируем объект с ответами
-            const resultData = {
-                car: carNumber,
-                base: base,
-                time: arrivalTime,
-                trailer: trailer,
-                truck: truck,
-                comment: comment
-            };
+            // Получаем ID чата пользователя, открывшего форму
+            const chatId = tg.initDataUnsafe?.user?.id;
+            if (!chatId) {
+                alert('Ошибка: Не удалось определить ваш Telegram ID');
+                return;
+            }
 
-            // Отправляем данные обратно боту
-            tg.sendData(JSON.stringify(resultData));
-            tg.close(); // Закрываем форму
+            // Формируем красивый структурированный текст с HTML-тегами
+            const reportText = 
+                `📝 <b>НОВАЯ ЗАЯВКА НА БАЗУ</b>\n\n` +
+                `🔹 <b>1. Номер машины:</b> WR-<code>${carNumber}</code>\n` +
+                `🔹 <b>2. База назначения:</b> ${base}\n` +
+                `🔹 <b>3. Время прибытия:</b> ${arrivalTime}\n` +
+                `🔹 <b>4. Ремонт прицепа:</b> ${trailer}\n` +
+                `🔹 <b>5. Ремонт тягача:</b> ${truck}\n\n` +
+                `📋 <b>6. Что нужно получить:</b>\n<i>${comment}</i>`;
+
+            // ВСТАВЬТЕ СВОЙ ТОКЕН СЮДА (из вашего скриншота)
+            const botToken = '8818671945:AAFpUoY6uqYCeMrYMLBqPQNJAwLzDPTXOLg';
+
+            // Отправляем структурированное сообщение напрямую в Telegram через запрос
+            fetch(`https://telegram.org{botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: reportText,
+                    parse_mode: 'HTML'
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    tg.close(); // Закрываем форму после успешной отправки
+                } else {
+                    alert('Ошибка отправки сообщения');
+                }
+            })
+            .catch(error => {
+                alert('Сетевая ошибка: ' + error);
+            });
         }
     </script>
 </body>
